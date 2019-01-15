@@ -15,6 +15,7 @@
 #include "symboltable.h"
 #include "tokens.h" 
 int comment = 0;
+int beginning=0;
 entry_t** symbol_table;
 entry_t** constant_table; 
 %}
@@ -24,6 +25,8 @@ digit 		[0-9]
 whitespace	[ \t\r\f\v]+
 identifier 	(_|{letter})({letter}|{digit}|_)*
 hex 		[0-9a-f]
+
+%x comment
 
 %%
 
@@ -71,8 +74,12 @@ hex 		[0-9a-f]
 
 
 "//".* 						{printf("Single line comment: %s \n",yytext);}
-"/*"([^*]|\*+[^*/])*\*+"/" 	{printf("Multi line comment: %s \n",yytext);}
-
+"/*"                        {beginning = yylineno; BEGIN comment;}
+<comment>.|{whitespace}     {}                 ;
+<comment>\n                 {yylineno++;}
+<comment>"*/"               {BEGIN INITIAL;}
+<comment>"/*"               {printf("Line %3d: Nested comments are not valid!\n",yylineno);}
+<comment><<EOF>> 			{printf("Line %3d: Unterminated comment\n", beginning); yyterminate();}
 
 {whitespace}				{}
 [+\-]?[0][x|X]{hex}+		{printf("Hex: %s\n", yytext); insert( constant_table,yytext,HEX_CONSTANT);}				

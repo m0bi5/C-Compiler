@@ -9,7 +9,6 @@
   Multi-line comments,
   Unaccepted symbols,
   ex and Int constants, etc.
-*/
 
 
 #include<stdio.h>
