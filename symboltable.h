@@ -1,15 +1,13 @@
-/* 
-* Compiler Design Project 1 : Lexical Analyser
-*
-* File        : symboltable.h
-* Description : This file contains functions related to a hash organised symbol table. 
-*               The functions implemented are:
-*               create_table(), insert(), search, display() 
-*                  
-* Authors     : Karthik M - 15CO22, Kaushik S Kalmady - 15CO222
-* Date        : 17-1-2018
-*/
+/*	Project 1 - Compiler Design 
 
+
+	Jay Satish Shinde - 16CO118
+	Mohit Bhasi - 16CO126
+	Anshul Pinto - 16CO101	
+
+
+	Symbol Table and Constants Table
+*/
 
 
 #include <stdint.h>
@@ -153,9 +151,9 @@ void display(entry_t** hash_table_ptr)
 {
 	int i;
 	entry_t* traverser;
-    printf("\n==========================================\n");
-    printf("\t < lexeme , token >\n");
-    printf("==========================================\n");
+    printf("\n****************************************\n");
+    printf("\t < Lexeme , Token id >\n");
+    printf("****************************************\n");
 
 	for( i=0; i < HASH_TABLE_SIZE; i++)
 	{
@@ -167,6 +165,6 @@ void display(entry_t** hash_table_ptr)
 			traverser = traverser->successor;
 		}
 	}
-    printf("==========================================\n");
+    printf("\n****************************************\n");
    
 }

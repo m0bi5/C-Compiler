@@ -1,35 +1,31 @@
-/* 
-Test Case
-Identifying tokens and displaying symbol and constants table
-Following tokens must be detected
- - Keywords   (int, long int, long long int, main include)
- - Identifiers (main,total,x,y,printf),
- - Constants  (-10, 20, 0x0f, 123456l)
- - Strings ("Total = %d \n")
- - Special symbols and Brackets ( (), {}, ;, ,)
- - Operators (+,-,=,*,/,%,--,++)
-The output should display appropriate tokens with their type and also the symbol and constants table*/
+/*  Project 1 - Compiler Design 
+
+
+  Jay Satish Shinde - 16CO118
+  Mohit Bhasi - 16CO126
+  Anshul Pinto - 16CO101  
+
+  Test case including 
+  Multi-line comments,
+  Unaccepted symbols,
+  ex and Int constants, etc.
+*/
+
 
 #include<stdio.h>
 #include<stdlib.h>
+!
 int main()
 {
-  int x, y;
-  long long int total, diff;
-  int *ptr;
-  unsigned int a = 0x0f;
-  long int mylong = 123456l;
-  long int i, j;
-  for(i=0; i < 10; i++){
-    for(j=10; j > 0; j--){
-    printf("%d",i);
-    }
-  }
-  x = -10, y = 20;
-  x=x*3/2;
-  total = x + y;
-  diff = x - y;
-  int rem = x % y;
-  printf ("Total = %d \n", total);
+int sum1 = 0x03f, sum2 = 23;
+int *p;
+for(int i=0;i<10;i++)
+{
+  sum1 = sum1 + sum2;
 }
-
+int a = 10;
+int b = 0;
+sum1 = a * sum1 / sum2 -b;
+printf("Value of sum1 = %d\n", sum1);
+return 0;
+}

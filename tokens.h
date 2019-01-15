@@ -1,11 +1,12 @@
-/* 
-* Compiler Design Project 1 : Lexical Analyser
-*
-* File        : tokens.h
-* Description : This file defines tokens and the values associated to them.
-*                  
-* Authors     : Karthik M - 15CO22, Kaushik S Kalmady - 15CO222
-* Date        : 17-1-2018
+/*  Project 1 - Compiler Design 
+
+
+  Jay Satish Shinde - 16CO118
+  Mohit Bhasi - 16CO126
+  Anshul Pinto - 16CO101  
+
+
+  Tokens file to return values corresponding to each token. Used for printing Symbol and Constants tables.
 */
 
 enum keywords
