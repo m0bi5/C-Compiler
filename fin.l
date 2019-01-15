@@ -1,16 +1,31 @@
-letter 		[a-zA-Z]
-digit 		[0-9]
-whitespace	[ \t\r\f\v]+
-identifier (_|{letter})({letter}|{digit}|_){0,31}
-hex 		[0-9a-f]
+/*	Project 1 - Compiler Design 
+	Lexical Analyser
 
+	Jay Satish Shinde - 16CO118
+	Mohit Bhasi - 16CO126
+	Anshul Pinto - 16CO101	
+
+
+	Main Lex file
+*/
 
 %{
 #include<stdio.h>
+#include <stdlib.h>
+#include "symboltable.h"
+#include "tokens.h" 
 int comment = 0;
-int yylineno=1;
-int beginning=0;
+int beginning = 0;
+int yylineno = 0;
+entry_t** symbol_table;
+entry_t** constant_table; 
 %}
+
+letter 		[a-zA-Z]
+digit 		[0-9]
+whitespace	[ \t\r\f\v]+
+identifier 	(_|{letter})({letter}|{digit}|_)*
+hex 		[0-9a-f]
 
 %x comment
 
@@ -51,10 +66,15 @@ int beginning=0;
 "void"				{ printf("Keyword: %s\n",yytext); }
 "volatile"			{ printf("Keyword: %s\n",yytext); }
 "while" 			{ printf("Keyword: %s\n",yytext); } 
+"main" 				{ printf("Keyword: %s\n",yytext); } 
 
 
-"//".*			{printf("Single line comment: %s \n",yytext);}
+{identifier} { printf("Identifier: %s\n",yytext); insert( symbol_table,yytext,IDENTIFIER );}
 
+
+#(include(" ")*(<|\")[a-zA-Z\.]*(>|\")|define) {printf("Pre Processor: %s\n",yytext);}
+
+"//".* 						{printf("Single line comment: %s \n",yytext);}
 "/*"					{beginning = yylineno; BEGIN comment;}
 <comment>.|{whitespace}	{}
 <comment>\n 			{yylineno++;}
@@ -62,31 +82,23 @@ int beginning=0;
 <comment>"/*"			{printf("Line %d: Invalid nesting of comments\n",yylineno);}
 <comment><<EOF>>		{printf("Line %d: Comment not terminated\n", beginning); yyterminate();}
 
-{identifier} { printf("Identifier: %s\n",yytext);} 
-
-
-#(include(" ")*(<|\")[a-zA-Z\.]*(>|\")|define) {printf("Pre Processor: %s\n",yytext);}
-
-
-
-
 
 {whitespace}				{}
-[+\-]?[0][x|X]{hex}+		{printf("Hex: %s\n", yytext);}				
-[+\-]?{digit}+				{printf("Constant: %s\n", yytext);}
+[+\-]?[0][x|X]{hex}+		{printf("Hex: %s\n", yytext); insert( constant_table,yytext,HEX_CONSTANT);}				
+[+\-]?{digit}+				{printf("Constant: %s\n", yytext); insert( constant_table,yytext,DEC_CONSTANT);}
 \"(\\.|[^"\\])*\"			{printf("String literal :%s\n",yytext);}
 		
 \n 		{yylineno++;}
 
-"--"	{printf("Operator: %s\n",yytext);}
-"++"	{printf("Operator: %s\n",yytext);}
-"->"	{printf("Operator: %s\n",yytext);}
-"&&"	{printf("Operator: %s\n",yytext);}
-"||"	{printf("Operator: %s\n",yytext);}
-"<="	{printf("Operator: %s\n",yytext);}
-">="	{printf("Operator: %s\n",yytext);}
-"=="	{printf("Operator: %s\n",yytext);}
-"!="	{printf("Operator: %s\n",yytext);}
+"--"	{printf("Punctuator: %s\n",yytext);}
+"++"	{printf("Punctuator: %s\n",yytext);}
+"->"	{printf("Punctuator: %s\n",yytext);}
+"&&"	{printf("Punctuator: %s\n",yytext);}
+"||"	{printf("Punctuator: %s\n",yytext);}
+"<="	{printf("Punctuator: %s\n",yytext);}
+">="	{printf("Punctuator: %s\n",yytext);}
+"=="	{printf("Punctuator: %s\n",yytext);}
+"!="	{printf("Punctuator: %s\n",yytext);}
 ";"		{printf("Punctuator: %s\n",yytext);}
 "{"     {printf("Punctuator: %s\n",yytext);}
 "}"     {printf("Punctuator: %s\n",yytext);}
@@ -96,13 +108,13 @@ int beginning=0;
 ")"		{printf("Punctuator: %s\n",yytext);}
 "["     {printf("Punctuator: %s\n",yytext);}
 "]"     {printf("Punctuator: %s\n",yytext);}
-"-"		{printf("Operator: %s\n",yytext);}
-"+"		{printf("Operator: %s\n",yytext);}
-"*"		{printf("Operator: %s\n",yytext);}
-"/"		{printf("Operator: %s\n",yytext);}
-"%"		{printf("Operator: %s\n",yytext);}
-"<"		{printf("Operator: %s\n",yytext);}
-">"		{printf("Operator: %s\n",yytext);}
+"-"		{printf("Punctuator: %s\n",yytext);}
+"+"		{printf("Punctuator: %s\n",yytext);}
+"*"		{printf("Punctuator: %s\n",yytext);}
+"/"		{printf("Punctuator: %s\n",yytext);}
+"%"		{printf("Punctuator: %s\n",yytext);}
+"<"		{printf("Punctuator: %s\n",yytext);}
+">"		{printf("Punctuator: %s\n",yytext);}
 
 
 .	{printf("Line %3d: Illegal character %s\n",yylineno,yytext);}
@@ -115,19 +127,32 @@ int yywrap()
 	return 0;
 }
 
+
+
 int main(int argc,char **argv)
 {
+	
 	if(argc>1)
 	{
-		FILE *file;
 		yyin = fopen(argv[1],"r");
-		yylex();
-		fclose(yyin);
+		
 	}
 	else
 	{
 		printf("Please enter an input file!\n");
 	}
+	symbol_table=create_table();
+  	constant_table=create_table();
+  	yylex();
 	printf("\n\n");
+	printf("\n****************************************");
+	printf("\n\tSymbol table");
+  	display(symbol_table);
+  	printf("\n\n");
+  	printf("\n****************************************");
+  	printf("\n\tConstants Table");
+  	display(constant_table);
+  	printf("\n\n");
+	fclose(yyin);
 	return 0;
 }

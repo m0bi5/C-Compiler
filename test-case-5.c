@@ -8,11 +8,10 @@ Following tokens must be detected
  - Strings ("Total = %d \n")
  - Special symbols and Brackets ( (), {}, ;, ,)
  - Operators (+,-,=,*,/,%,--,++)
-The output should display appropriate tokens with their type and also the symbol and constants table
-*/
+The output should display appropriate tokens with their type and also the symbol and constants table*/
+
 #include<stdio.h>
 #include<stdlib.h>
-❓
 int main()
 {
   int x, y;
