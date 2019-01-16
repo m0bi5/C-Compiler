@@ -9,7 +9,13 @@
   Multi-line comments,
   Unaccepted symbols,
   ex and Int constants, etc.
+*/
 
+char a="aasdasdas"
+
+char b='a'
+
+int a=10.0;
 
 #include<stdio.h>
 #include<stdlib.h>

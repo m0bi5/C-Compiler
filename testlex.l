@@ -23,10 +23,10 @@ entry_t** constant_table;
 letter 		[a-zA-Z]
 digit 		[0-9]
 whitespace	[ \t\r\f\v]+
-identifier 	(_|{letter})({letter}|{digit}|_)*
+identifier 	(_|{letter})({letter}|{digit}|_){0,31}
 hex 		[0-9a-f]
 
-%x comment
+%x comment string
 
 %%
 
@@ -78,14 +78,22 @@ hex 		[0-9a-f]
 <comment>.|{whitespace}     {}                 ;
 <comment>\n                 {yylineno++;}
 <comment>"*/"               {BEGIN INITIAL;}
-<comment>"/*"               {printf("Line %3d: Nested comments are not valid!\n",yylineno);}
-<comment><<EOF>> 			{printf("Line %3d: Unterminated comment\n", beginning); yyterminate();}
+<comment>"/*"               {printf("Line %d: Nested comments are not valid!\n",yylineno);}
+<comment><<EOF>> 			{printf("Line %d: Unterminated comment\n", beginning); yyterminate();}
 
-{whitespace}				{}
-[+\-]?[0][x|X]{hex}+		{printf("Hex: %s\n", yytext); insert( constant_table,yytext,HEX_CONSTANT);}				
-[+\-]?{digit}+				{printf("Constant: %s\n", yytext); insert( constant_table,yytext,DEC_CONSTANT);}
-\"(\\.|[^"\\])*\"			{printf("String literal :%s\n",yytext);}
-		
+{whitespace}					{}
+[+\-]?[0][x|X]{hex}+			{printf("Hex: %s\n", yytext); insert( constant_table,yytext,HEX_CONSTANT);}	
+[+\-]?({digit}+[.]){1}{digit}+  {printf("Decimal Constant: %s\n", yytext); insert( constant_table,yytext,DEC_CONSTANT);}
+[+\-]?{digit}+					{printf("Integer Constant: %s\n", yytext); insert( constant_table,yytext,DEC_CONSTANT);}
+
+\"([^"\\\n]|\\.)*\"			{printf("String constant : %s\n",yytext);}
+\"							{printf("Line %d: Unterminated string constant\n",yylineno);yyterminate();}
+
+
+'([^'\\\n]|\\.)'			{printf("Character constant : %s\n",yytext);}
+'([^'\\\n]|\\.)+'			{printf("Line %d: Character constant length exceeded\n",yylineno);yyterminate();}
+'							{printf("Line %d: Unterminated character constant\n",yylineno);yyterminate();}
+
 \n 		{yylineno++;}
 
 "--"	{printf("Punctuator: %s\n",yytext);}
