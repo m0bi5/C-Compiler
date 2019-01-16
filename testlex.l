@@ -23,12 +23,15 @@ entry_t** constant_table;
 letter 		[a-zA-Z]
 digit 		[0-9]
 whitespace	[ \t\r\f\v]+
-identifier 	(_|{letter})({letter}|{digit}|_){0,31}
+identifier 	(_|{letter})({letter}|{digit}|_)* 
 hex 		[0-9a-f]
 
 %x comment string
 
 %%
+
+
+#(include(" ")*<[a-zA-Z\.]*>|define) {printf("Pre Processor: %s\n",yytext);}
 
 "auto"				{ printf("Keyword: %s\n",yytext); }
 "break"				{ printf("Keyword: %s\n",yytext); }
@@ -67,10 +70,17 @@ hex 		[0-9a-f]
 "while" 			{ printf("Keyword: %s\n",yytext); } 
 
 
-{identifier} { printf("Identifier: %s\n",yytext); insert( symbol_table,yytext,IDENTIFIER );}
+{identifier} {
+					if (strlen(yytext)>32)
+					 	printf("Error: Identifier too long\n"); 
+					 else
+					 {	
+					 	printf("Identifier: %s\n",yytext ); 
+					 	insert( symbol_table,yytext,IDENTIFIER );
+					}
+			}
 
 
-#(include(" ")*<[a-zA-Z\.]*>|define) {printf("Pre Processor: %s\n",yytext);}
 
 
 "//".* 						{printf("Single line comment: %s \n",yytext);}

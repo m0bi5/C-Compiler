@@ -11,17 +11,16 @@
   ex and Int constants, etc.
 */
 
-char a="aasdasdas"
 
-char b='a'
-
-int a=10.0;
 
 #include<stdio.h>
 #include<stdlib.h>
 !
 int main()
 {
+char a[100]="aasdasdas" ;
+char b='a';
+int a=10.0;
 int sum1 = 0x03f, sum2 = 23;
 int *p;
 for(int i=0;i<10;i++)
