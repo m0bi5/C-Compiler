@@ -12,10 +12,12 @@
 %{
 #include<stdio.h>
 #include <stdlib.h>
-
+#include "symboltable.h"
+#include "tokens.h" 
 int comment = 0;
 int beginning=0;
-
+entry_t** symbol_table;
+entry_t** constant_table; 
 %}
 
 letter 		[a-zA-Z]
@@ -31,52 +33,52 @@ hex 		[0-9a-f]
 
 #(include(" ")*<[a-zA-Z\.]*>|define) {printf("Pre Processor: %s\n",yytext);}
 
-"auto"				{ printf("Keyword: %s\n",yytext); return AUTO;}
-"break"				{ printf("Keyword: %s\n",yytext); return BREAK;}
-"case"				{ printf("Keyword: %s\n",yytext); return CASE;}
-"char"				{ printf("Keyword: %s\n",yytext); return CHAR;}
-"const"				{ printf("Keyword: %s\n",yytext); return CONST;}
-"continue"			{ printf("Keyword: %s\n",yytext); return CONTINUE;}
-"default"			{ printf("Keyword: %s\n",yytext); return DEFAULT;}
-"do"				{ printf("Keyword: %s\n",yytext); return DO;}
-"double"			{ printf("Keyword: %s\n",yytext); return DOUBLE;}
-"else if"			{ printf("Keyword: %s\n",yytext); return ELSE_IF;}
-"else"				{ printf("Keyword: %s\n",yytext); return ELSE;}
-"enum"				{ printf("Keyword: %s\n",yytext); return ENUM;}
-"extern"			{ printf("Keyword: %s\n",yytext); return EXTERN;}
-"float"				{ printf("Keyword: %s\n",yytext); return FLOAT;}
-"for"				{ printf("Keyword: %s\n",yytext); return FOR;}
-"goto"				{ printf("Keyword: %s\n",yytext); return GOTO;}
-"if"				{ printf("Keyword: %s\n",yytext); return IF;}
-"inline"			{ printf("Keyword: %s\n",yytext); return INLINE;}
-"int"				{ printf("Keyword: %s\n",yytext); return INT;}
-"long"				{ printf("Keyword: %s\n",yytext); return LONG;}
-"register"			{ printf("Keyword: %s\n",yytext); return REGISTER;}
-"restrict"			{ printf("Keyword: %s\n",yytext); return RESTRICT;}
-"return"			{ printf("Keyword: %s\n",yytext); return RETURN;}
-"short"				{ printf("Keyword: %s\n",yytext); return SHORT;}
-"signed"			{ printf("Keyword: %s\n",yytext); return SIGNED}
-"sizeof"			{ printf("Keyword: %s\n",yytext); return SIZEOF;}
-"static"			{ printf("Keyword: %s\n",yytext); return STATIC;}
-"struct"			{ printf("Keyword: %s\n",yytext); return STRUCT;}
-"switch"			{ printf("Keyword: %s\n",yytext); return SWITCH;}
-"typedef"			{ printf("Keyword: %s\n",yytext); return TYPEDEF;}
-"union"				{ printf("Keyword: %s\n",yytext); return UNION;}
-"unsigned"			{ printf("Keyword: %s\n",yytext); return UNSIGNED;}
-"void"				{ printf("Keyword: %s\n",yytext); return VOID;}
-"volatile"			{ printf("Keyword: %s\n",yytext); return VOLATILE;}
-"while" 			{ printf("Keyword: %s\n",yytext); return WHILE;} 
+"auto"				{ printf("Keyword: %s\n",yytext); }
+"break"				{ printf("Keyword: %s\n",yytext); }
+"case"				{ printf("Keyword: %s\n",yytext); }
+"char"				{ printf("Keyword: %s\n",yytext); }
+"const"				{ printf("Keyword: %s\n",yytext); }
+"continue"			{ printf("Keyword: %s\n",yytext); }
+"default"			{ printf("Keyword: %s\n",yytext); }
+"do"				{ printf("Keyword: %s\n",yytext); }
+"double"			{ printf("Keyword: %s\n",yytext); }
+"else if"			{ printf("Keyword: %s\n",yytext); }
+"else"				{ printf("Keyword: %s\n",yytext); }
+"enum"				{ printf("Keyword: %s\n",yytext); }
+"extern"			{ printf("Keyword: %s\n",yytext); }
+"float"				{ printf("Keyword: %s\n",yytext); }
+"for"				{ printf("Keyword: %s\n",yytext); }
+"goto"				{ printf("Keyword: %s\n",yytext); }
+"if"				{ printf("Keyword: %s\n",yytext); }
+"inline"			{ printf("Keyword: %s\n",yytext); }
+"int"				{ printf("Keyword: %s\n",yytext); }
+"long"				{ printf("Keyword: %s\n",yytext); }
+"register"			{ printf("Keyword: %s\n",yytext); }
+"restrict"			{ printf("Keyword: %s\n",yytext); }
+"return"			{ printf("Keyword: %s\n",yytext); }
+"short"				{ printf("Keyword: %s\n",yytext); }
+"signed"			{ printf("Keyword: %s\n",yytext); }
+"sizeof"			{ printf("Keyword: %s\n",yytext); }
+"static"			{ printf("Keyword: %s\n",yytext); }
+"struct"			{ printf("Keyword: %s\n",yytext); }
+"switch"			{ printf("Keyword: %s\n",yytext); }
+"typedef"			{ printf("Keyword: %s\n",yytext); }
+"union"				{ printf("Keyword: %s\n",yytext); }
+"unsigned"			{ printf("Keyword: %s\n",yytext); }
+"void"				{ printf("Keyword: %s\n",yytext); }
+"volatile"			{ printf("Keyword: %s\n",yytext); }
+"while" 			{ printf("Keyword: %s\n",yytext); } 
 
 
 {identifier} {
-	if (strlen(yytext)>32)
-		printf("Error: Identifier too long\n"); 
-		else
-		{	
-		printf("Identifier: %s\n",yytext ); 
-	}
-	return IDENTIFIER;
-}
+					if (strlen(yytext)>32)
+					 	printf("Error: Identifier too long\n"); 
+					 else
+					 {	
+					 	printf("Identifier: %s\n",yytext ); 
+					 	insert( symbol_table,yytext,IDENTIFIER );
+					}
+			}
 
 
 
@@ -90,47 +92,45 @@ hex 		[0-9a-f]
 <comment><<EOF>> 			{printf("Line %d: Unterminated comment\n", beginning); yyterminate();}
 
 {whitespace}					{}
-[+\-]?[0][x|X]{hex}+			{printf("Hex: %s\n", yytext); return HEX_CONSTANT;}	
-[+\-]?({digit}+[.]){1}{digit}+  {printf("Decimal Constant: %s\n", yytext); return FLOAT_CONSTANT;}
-[+\-]?{digit}+					{printf("Integer Constant: %s\n", yytext); return INT_CONSTANT;}
+[+\-]?[0][x|X]{hex}+			{printf("Hex: %s\n", yytext); insert( constant_table,yytext,HEX_CONSTANT);}	
+[+\-]?({digit}+[.]){1}{digit}+  {printf("Decimal Constant: %s\n", yytext); insert( constant_table,yytext,DEC_CONSTANT);}
+[+\-]?{digit}+					{printf("Integer Constant: %s\n", yytext); insert( constant_table,yytext,DEC_CONSTANT);}
 
-\"([^"\\\n]|\\.)*\"			{printf("String constant : %s\n",yytext); return STRING_CONSTANT;}
+\"([^"\\\n]|\\.)*\"			{printf("String constant : %s\n",yytext);}
 \"							{printf("Line %d: Unterminated string constant\n",yylineno);yyterminate();}
 
 
-'([^'\\\n]|\\.)'			{printf("Character constant : %s\n",yytext);return CHAR_CONSTANT;}
+'([^'\\\n]|\\.)'			{printf("Character constant : %s\n",yytext);}
 '([^'\\\n]|\\.)+'			{printf("Line %d: Character constant length exceeded\n",yylineno);yyterminate();}
 '							{printf("Line %d: Unterminated character constant\n",yylineno);yyterminate();}
 
 \n 		{yylineno++;}
 
-"--"	{printf("Punctuator: %s\n",yytext); return DEC_OP;}
-"++"	{printf("Punctuator: %s\n",yytext); return INC_OP;}
-"&&"	{printf("Punctuator: %s\n",yytext); return AND_OP;}
-"||"	{printf("Punctuator: %s\n",yytext); return OR_OP;}
-"<="	{printf("Punctuator: %s\n",yytext); return LE_OP;} 
-">="	{printf("Punctuator: %s\n",yytext); return GE_OP;}
-"=="	{printf("Punctuator: %s\n",yytext); return EQ_OP;}
-"!="	{printf("Punctuator: %s\n",yytext); return NE_OP;}
-";"		{printf("Punctuator: %s\n",yytext); return (';');} 
-"{"     {printf("Punctuator: %s\n",yytext); return ('{');}  
-"}"     {printf("Punctuator: %s\n",yytext); return ('}');}
-","		{printf("Punctuator: %s\n",yytext); return (',');}
-"="		{printf("Punctuator: %s\n",yytext); return ('=');}
-"("		{printf("Punctuator: %s\n",yytext); return ('(');}
-")"		{printf("Punctuator: %s\n",yytext); return (')');}  
-"["     {printf("Punctuator: %s\n",yytext); return ('[');}
-"]"     {printf("Punctuator: %s\n",yytext); return (']');}
-"-"		{printf("Punctuator: %s\n",yytext); return ('-');}
-"+"		{printf("Punctuator: %s\n",yytext); return ('+');}
-"*"		{printf("Punctuator: %s\n",yytext); return ('*');}
-"/"		{printf("Punctuator: %s\n",yytext); return ('/');}
-"%"		{printf("Punctuator: %s\n",yytext); return ('%');}
-"<"		{printf("Punctuator: %s\n",yytext); return ('<');}
-">"		{printf("Punctuator: %s\n",yytext); return ('>');} 
-"^"		{printf("Punctuator: %s\n",yytext); return ('^');} 
-"|"		{printf("Punctuator: %s\n",yytext); return ('|');} 
-"&"		{printf("Punctuator: %s\n",yytext); return ('&');} 
+"--"	{printf("Punctuator: %s\n",yytext);}
+"++"	{printf("Punctuator: %s\n",yytext);}
+"->"	{printf("Punctuator: %s\n",yytext);}
+"&&"	{printf("Punctuator: %s\n",yytext);}
+"||"	{printf("Punctuator: %s\n",yytext);}
+"<="	{printf("Punctuator: %s\n",yytext);}
+">="	{printf("Punctuator: %s\n",yytext);}
+"=="	{printf("Punctuator: %s\n",yytext);}
+"!="	{printf("Punctuator: %s\n",yytext);}
+";"		{printf("Punctuator: %s\n",yytext);}
+"{"     {printf("Punctuator: %s\n",yytext);}
+"}"     {printf("Punctuator: %s\n",yytext);}
+","		{printf("Punctuator: %s\n",yytext);}
+"="		{printf("Punctuator: %s\n",yytext);}
+"("		{printf("Punctuator: %s\n",yytext);}
+")"		{printf("Punctuator: %s\n",yytext);}
+"["     {printf("Punctuator: %s\n",yytext);}
+"]"     {printf("Punctuator: %s\n",yytext);}
+"-"		{printf("Punctuator: %s\n",yytext);}
+"+"		{printf("Punctuator: %s\n",yytext);}
+"*"		{printf("Punctuator: %s\n",yytext);}
+"/"		{printf("Punctuator: %s\n",yytext);}
+"%"		{printf("Punctuator: %s\n",yytext);}
+"<"		{printf("Punctuator: %s\n",yytext);}
+">"		{printf("Punctuator: %s\n",yytext);}
 
 
 .	{printf("Line %3d: Illegal character %s\n",yylineno,yytext);}
@@ -157,7 +157,17 @@ int main(int argc,char **argv)
 	{
 		printf("Please enter an input file!\n");
 	}
+	symbol_table=create_table();
+  	constant_table=create_table();
   	yylex();
+	printf("\n\n");
+	printf("\n****************************************");
+	printf("\n\tSymbol table");
+  	display(symbol_table);
+  	printf("\n\n");
+  	printf("\n****************************************");
+  	printf("\n\tConstants Table");
+  	display(constant_table);
   	printf("\n\n");
 	return 0;
 	//fclose(yyin);
