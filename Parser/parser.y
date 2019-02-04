@@ -7,7 +7,11 @@
 %token INC_OP DEC_OP LE_OP GE_OP EQ_OP NE_OP
 %token AND_OP OR_OP
 %token CHAR SHORT INT LONG SIGNED UNSIGNED FLOAT DOUBLE CONST VOID
-%token IF ELSE WHILE CONTINUE BREAK RETURN FOR GOTO
+
+%token VOLATILE UNION TYPEDEF SWITCH STRUCT STATIC SIGNED RESTRICT REGISTER INLINE EXTERN ENUM
+%token ELSE_IF DO DEFAULT CASE AUTO SIGNED
+
+%token IF ELSE WHILE CONTINUE BREAK RETURN FOR GOTO 
 %start start_state
 %glr-parser
 %nonassoc NO_ELSE
@@ -353,7 +357,6 @@ type_specifier_list
 	: type_specifier type_specifier_list
 	| type_specifier
 	;
-
 %%
 
 #include "lex.yy.c"

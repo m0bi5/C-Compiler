@@ -55,7 +55,7 @@ hex 		[0-9a-f]
 "restrict"			{ printf("Keyword: %s\n",yytext); return RESTRICT;}
 "return"			{ printf("Keyword: %s\n",yytext); return RETURN;}
 "short"				{ printf("Keyword: %s\n",yytext); return SHORT;}
-"signed"			{ printf("Keyword: %s\n",yytext); return SIGNED}
+"signed"			{ printf("Keyword: %s\n",yytext); return SIGNED;}
 "sizeof"			{ printf("Keyword: %s\n",yytext); return SIZEOF;}
 "static"			{ printf("Keyword: %s\n",yytext); return STATIC;}
 "struct"			{ printf("Keyword: %s\n",yytext); return STRUCT;}
@@ -137,29 +137,3 @@ hex 		[0-9a-f]
 
 %%
 
-/*
-int yywrap()
-{
-	return 0;
-}
-*/
-
-
-int main(int argc,char **argv)
-{
-	
-	if(argc>1)
-	{
-		yyin = fopen(argv[1],"r");
-		
-	}
-	else
-	{
-		printf("Please enter an input file!\n");
-	}
-  	yylex();
-  	printf("\n\n");
-	return 0;
-	//fclose(yyin);
-
-}
