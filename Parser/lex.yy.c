@@ -294,22 +294,22 @@ static yyconst short int yy_accept[237] =
        76,   56,   74,   57,    2,    2,    3,    2,    2,   80,
        52,    0,   11,    0,    0,   53,    0,   47,    0,   48,
         1,    6,    0,   13,    0,   64,   63,   49,   51,   50,
-       76,   76,   76,   76,   76,   76,   76,   76,   43,   76,
+       76,   76,   76,   76,   76,   76,   76,   76,   42,   76,
        76,   76,   76,   76,   25,   76,   76,   76,   76,   76,
 
        76,   76,   76,   76,   76,   76,   54,    2,    4,    5,
         0,    0,   12,    6,   14,   16,   76,   76,   76,   76,
-       76,   76,   76,   76,   76,   76,   45,   76,   76,   20,
+       76,   76,   76,   76,   76,   76,   43,   76,   76,   20,
        76,   76,   76,   76,   76,   76,   76,   76,   76,   76,
-       76,   76,    0,    0,    0,   32,   76,   40,   18,   76,
-       76,   76,   76,   26,   76,   76,   46,   76,   21,   76,
+       76,   76,    0,    0,    0,   32,   76,   44,   18,   76,
+       76,   76,   76,   26,   76,   76,   41,   76,   21,   76,
        76,   76,   76,   76,   76,   76,   76,   76,   24,   76,
         0,    0,    0,   15,   28,   33,   76,   76,   76,    0,
        76,   31,   76,   76,   76,   19,   76,   76,   76,   76,
        76,   76,   27,    0,    0,   76,   76,   34,    0,   35,
 
-       38,   76,   29,   22,   17,   37,   41,   76,   76,    0,
-        0,   76,   42,   44,   76,   39,   76,    0,    0,   30,
+       38,   76,   29,   22,   17,   37,   45,   76,   76,    0,
+        0,   76,   46,   40,   76,   39,   76,    0,    0,   30,
        36,   23,    0,    0,    0,    0,    0,    0,    8,   10,
         0,    0,   10,    7,    9,    0
     } ;
@@ -1002,37 +1002,37 @@ YY_RULE_SETUP
 case 40:
 YY_RULE_SETUP
 #line 61 ".\\lexer.l"
-{ return CASE; } /*Grammar to be added start*/
+{ return ELSE_IF; }
 	YY_BREAK
 case 41:
 YY_RULE_SETUP
 #line 62 ".\\lexer.l"
-{ return SWITCH; }
+{ return GOTO; }
 	YY_BREAK
 case 42:
 YY_RULE_SETUP
 #line 63 ".\\lexer.l"
-{ return DEFAULT; }
+{ return DO; }
 	YY_BREAK
 case 43:
 YY_RULE_SETUP
 #line 64 ".\\lexer.l"
-{ return DO; }
+{ return FOR; }
 	YY_BREAK
 case 44:
 YY_RULE_SETUP
 #line 65 ".\\lexer.l"
-{ return ELSE_IF; }
+{ return CASE; } 
 	YY_BREAK
 case 45:
 YY_RULE_SETUP
 #line 66 ".\\lexer.l"
-{ return FOR; }
+{ return SWITCH; }
 	YY_BREAK
 case 46:
 YY_RULE_SETUP
 #line 67 ".\\lexer.l"
-{ return GOTO; }/*Grammar to be added end*/
+{ return DEFAULT; }
 	YY_BREAK
 case 47:
 YY_RULE_SETUP
@@ -1097,7 +1097,7 @@ YY_RULE_SETUP
 case 59:
 YY_RULE_SETUP
 #line 81 ".\\lexer.l"
-{  return(':'); } /*extra present*/
+{  return(':'); } /*extra added*/
 	YY_BREAK
 case 60:
 YY_RULE_SETUP
@@ -1127,7 +1127,7 @@ YY_RULE_SETUP
 case 65:
 YY_RULE_SETUP
 #line 87 ".\\lexer.l"
-{  return('&'); } /*extra present*/
+{  return('&'); } /*extra added*/
 	YY_BREAK
 case 66:
 YY_RULE_SETUP
@@ -1167,17 +1167,17 @@ YY_RULE_SETUP
 case 73:
 YY_RULE_SETUP
 #line 95 ".\\lexer.l"
-{  return('^'); } /*extra present*/
+{  return('^'); } /*extra added*/
 	YY_BREAK
 case 74:
 YY_RULE_SETUP
 #line 96 ".\\lexer.l"
-{  return('|'); } /*extra present*/
+{  return('|'); } /*extra added*/
 	YY_BREAK
 case 75:
 YY_RULE_SETUP
 #line 97 ".\\lexer.l"
-{  return('?'); } /*extra present*/
+{  return('?'); } /*extra added*/
 	YY_BREAK
 case 76:
 YY_RULE_SETUP

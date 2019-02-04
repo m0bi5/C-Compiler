@@ -58,13 +58,13 @@ int yylineno,beginning;
 "static"		{ return STATIC; }
 "inline"		{ return INLINE; }
 "typedef"		{ return TYPEDEF; }
-"case"			{ return CASE; } /*Grammar to be added start*/
+"else if"		{ return ELSE_IF; }
+"goto"			{ return GOTO; }
+"do"			{ return DO; }
+"for"			{ return FOR; }
+"case"			{ return CASE; } 
 "switch"		{ return SWITCH; }
 "default"		{ return DEFAULT; }
-"do"			{ return DO; }
-"else if"		{ return ELSE_IF; }
-"for"			{ return FOR; }
-"goto"			{ return GOTO; }/*Grammar to be added end*/
 
 "++"			{  return INC_OP; }
 "--"			{  return DEC_OP; }

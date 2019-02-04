@@ -5,21 +5,25 @@
 %left  '*'  '/' '%'
 %left  '|'
 %left  '&'
-%token IDENTIFIER STRING_CONSTANT CHAR_CONSTANT INT_CONSTANT FLOAT_CONSTANT SIZEOF
+%token IDENTIFIER STRING_CONSTANT CHAR_CONSTANT INT_CONSTANT FLOAT_CONSTANT HEX_CONSTANT SIZEOF
 %token INC_OP DEC_OP LEFT_OP RIGHT_OP LE_OP GE_OP EQ_OP NE_OP
 %token AND_OP OR_OP 
 %token TYPE_NAME DEF
 %token CHAR SHORT INT LONG SIGNED UNSIGNED FLOAT VOID AUTO CONST DOUBLE EXTERN REGISTER STATIC INLINE TYPEDEF
-%token IF ELSE WHILE CONTINUE BREAK RETURN
-%token HEX_CONSTANT CASE DEFAULT DO ELSE_IF FOR GOTO SWITCH /*Grammar to be added*/
+%token IF ELSE WHILE CONTINUE BREAK RETURN ELSE_IF GOTO DO FOR
+%token CASE DEFAULT SWITCH 
 %start start_state
 %nonassoc UNARY
 %glr-parser
 
 %{
 #include<string.h>
+#include "symboltable.h"
 char type[100];
 char temp[100];
+
+entry_t** symbol_table;
+entry_t** constant_table; 
 %}
 
 %%
@@ -41,10 +45,11 @@ function_definition
 
 fundamental_exp
 	: IDENTIFIER
-	| STRING_CONSTANT	{ constantInsert($1, "string"); }
-	| CHAR_CONSTANT     { constantInsert($1, "char"); }
-	| FLOAT_CONSTANT	{ constantInsert($1, "float"); }
-	| INT_CONSTANT		{ constantInsert($1, "int"); }
+	| STRING_CONSTANT	{ insert(constant_table, $1, "string"); }
+	| HEX_CONSTANT		{ insert(constant_table, $1, "hexadecimal"); }
+	| CHAR_CONSTANT     { insert(constant_table, $1, "char"); }
+	| FLOAT_CONSTANT	{ insert(constant_table, $1, "float"); }
+	| INT_CONSTANT		{ insert(constant_table, $1, "int"); }
 	| '(' expression ')'
 	;
 
@@ -196,17 +201,13 @@ type_specifier_list
 	;
 
 declarator
-	: direct_declarator
-	;
-
-direct_declarator
-	: IDENTIFIER	{ symbolInsert($1, type); }
+	: IDENTIFIER	{ insert(symbol_table, $1, type); }
 	| '(' declarator ')'
-	| direct_declarator '[' constant_expression ']'
-	| direct_declarator '[' ']'
-	| direct_declarator '(' parameter_type_list ')'
-	| direct_declarator '(' identifier_list ')'
-	| direct_declarator '(' ')'
+	| declarator '[' constant_expression ']'
+	| declarator '[' ']'
+	| declarator '(' parameter_type_list ')'
+	| declarator '(' identifier_list ')'
+	| declarator '(' ')'
 	;
 
 
@@ -268,6 +269,7 @@ statement
 	| selection_statement
 	| iteration_statement
 	| jump_statement
+	| case_statement
 	;
 
 compound_statement
@@ -295,13 +297,29 @@ expression_statement
 	| expression ';'
 	;
 
+elseif_list
+	: ELSE_IF '(' expression ')' statement
+	| ELSE_IF '(' expression ')' statement elseif_list
+	| ELSE statement
+	;
+
+case_statement
+	: CASE CHAR_CONSTANT ':' statement 
+	| CASE INT_CONSTANT ':' statement 
+	| DEFAULT ':'
+	;
+
 selection_statement
 	: IF '(' expression ')' statement %prec NO_ELSE
 	| IF '(' expression ')' statement ELSE statement
+	| IF '(' expression ')' statement elseif_list 
+	| SWITCH '(' IDENTIFIER ')' statement
 	;
 
 iteration_statement
 	: WHILE '(' expression ')' statement
+	| FOR '(' expression ';' expression ';' expression ')' statement
+	| DO statement WHILE '(' expression ')' ';'
 	;
 
 jump_statement
@@ -309,52 +327,19 @@ jump_statement
 	| BREAK ';'
 	| RETURN ';'
 	| RETURN expression ';'
+	| GOTO IDENTIFIER ':'	 
 	;
 %%
 #include"lex.yy.c"
 #include <ctype.h>
 #include <stdio.h>
 #include <string.h>
-struct symbol
-{
-	char token[100];	
-	char dataType[100];		
-}symbolTable[100000], constantTable[100000];
-int i=0; 
-int c=0;
 
-void symbolInsert(char* tokenName, char* DataType)
-{
-  strcpy(symbolTable[i].token, tokenName);
-  strcpy(symbolTable[i].dataType, DataType);
-  i++;
-}
-void constantInsert(char* tokenName, char* DataType)
-{
-	for(int j=0; j<c; j++)
-	{
-		if(strcmp(constantTable[j].token, tokenName)==0)
-			return;
-	}
-  strcpy(constantTable[c].token, tokenName);
-  strcpy(constantTable[c].dataType, DataType);
-  c++;
-}
-void showSymbolTable()
-{
-  printf("\n------------Symbol Table---------------------\n\nSNo\tToken\t\tDatatype\n\n");
-  for(int j=0;j<i;j++)
-    printf("%d\t%s\t\t< %s >\t\t\n",j+1,symbolTable[j].token,symbolTable[j].dataType);
-}
-void showConstantTable()
-{
-  printf("\n------------Constant Table---------------------\n\nSNo\tConstant\t\tDatatype\n\n");
-  for(int j=0;j<c;j++)
-    printf("%d\t%s\t\t< %s >\t\t\n",j+1,constantTable[j].token,constantTable[j].dataType);
-}
 int err=0;
 int main(int argc, char *argv[])
 {
+	symbol_table=create_table();
+  	constant_table=create_table();
 	yyin = fopen(argv[1], "r");
 	yyparse();
 	if(err==0)
@@ -362,8 +347,15 @@ int main(int argc, char *argv[])
 	else
 		printf("\nParsing failed\n");
 	fclose(yyin);
-	showSymbolTable();
-	showConstantTable();
+	printf("\n\n");
+	printf("\n****************************************");
+	printf("\n\tSymbol table");
+	display(symbol_table);
+	printf("\n\n");
+	printf("\n****************************************");
+	printf("\n\tConstants Table");
+	display(constant_table);
+	printf("\n\n");
 	return 0;
 }
 extern char *yytext;
@@ -371,7 +363,14 @@ yyerror(char *s)
 {
 	err=1;
 	printf("\nLine %d : %s\n", (yylineno), s);
-	showSymbolTable();
-	showConstantTable();
+	printf("\n\n");
+	printf("\n****************************************");
+	printf("\n\tSymbol table");
+	display(symbol_table);
+	printf("\n\n");
+	printf("\n****************************************");
+	printf("\n\tConstants Table");
+	display(constant_table);
+	printf("\n\n");
 	exit(0);
 }
