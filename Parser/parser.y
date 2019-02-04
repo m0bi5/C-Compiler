@@ -7,11 +7,11 @@
 %token INC_OP DEC_OP LE_OP GE_OP EQ_OP NE_OP
 %token AND_OP OR_OP
 %token CHAR SHORT INT LONG SIGNED UNSIGNED FLOAT DOUBLE CONST VOID
-%token IF ELSE WHILE CONTINUE BREAK RETURN
-%token AND_OP OR_OP 
+%token IF ELSE WHILE CONTINUE BREAK RETURN FOR GOTO
 %start start_state
 %glr-parser
-
+%nonassoc NO_ELSE
+%nonassoc ELSE
 
 %{
 #include<string.h>
@@ -355,3 +355,70 @@ type_specifier_list
 	;
 
 %%
+
+#include "lex.yy.c"
+#include <ctype.h>
+#include <stdio.h>
+#include <string.h>
+struct symbol
+{
+	char token[100];	// Name of the token
+	char dataType[100];		// Date type: int, short int, long int, char etc
+}symbolTable[100000], constantTable[100000];
+int i=0; // Number of symbols in the symbol table
+int c=0;
+//Insert function for symbol table
+void symbolInsert(char* tokenName, char* DataType)
+{
+  strcpy(symbolTable[i].token, tokenName);
+  strcpy(symbolTable[i].dataType, DataType);
+  i++;
+}
+void constantInsert(char* tokenName, char* DataType)
+{
+	for(int j=0; j<c; j++)
+	{
+		if(strcmp(constantTable[j].token, tokenName)==0)
+			return;
+	}
+  strcpy(constantTable[c].token, tokenName);
+  strcpy(constantTable[c].dataType, DataType);
+  c++;
+}
+
+
+void showSymbolTable()
+{
+	printf("\n------------Symbol Table---------------------\n\nSNo\tToken\t\tDatatype\n\n");
+	for(int j=0;j<i;j++)
+		printf("%d\t%s\t\t< %s >\t\t\n",j+1,symbolTable[j].token,symbolTable[j].dataType);
+}
+void showConstantTable()
+{
+	printf("\n------------Constant Table---------------------\n\nSNo\tConstant\t\tDatatype\n\n");
+	for(int j=0;j<c;j++)
+		printf("%d\t%s\t\t< %s >\t\t\n",j+1,constantTable[j].token,constantTable[j].dataType);
+}
+int err=0;
+int main(int argc, char *argv[])
+{
+	yyin = fopen(argv[1], "r");
+	yyparse();
+	if(err==0)
+		printf("\nParsing complete\n");
+	else
+		printf("\nParsing failed\n");
+	fclose(yyin);
+	showSymbolTable();
+	showConstantTable();
+	return 0;
+}
+extern char *yytext;
+yyerror(char *s)
+{
+	err=1;
+	printf("\nLine %d : %s\n", (yylineno), s);
+	showSymbolTable();
+	showConstantTable();
+	exit(0);
+}
