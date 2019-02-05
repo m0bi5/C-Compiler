@@ -1,5 +1,6 @@
 %nonassoc NO_ELSE
 %nonassoc ELSE
+%nonassoc ELSE_IF
 %left '<' '>' '=' GE_OP LE_OP EQ_OP NE_OP
 %left  '+'  '-'
 %left  '*'  '/' '%'
@@ -297,9 +298,8 @@ expression_statement
 	| expression ';'
 	;
 
-elseif_list
-	: ELSE_IF '(' expression ')' statement
-	| ELSE_IF '(' expression ')' statement elseif_list
+else_list
+	: ELSE_IF '(' expression ')' statement else_list
 	| ELSE statement
 	;
 
@@ -311,8 +311,7 @@ case_statement
 
 selection_statement
 	: IF '(' expression ')' statement %prec NO_ELSE
-	| IF '(' expression ')' statement ELSE statement
-	| IF '(' expression ')' statement elseif_list 
+	| IF '(' expression ')' statement else_list 
 	| SWITCH '(' IDENTIFIER ')' statement
 	;
 
