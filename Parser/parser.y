@@ -318,7 +318,7 @@ selection_statement
 iteration_statement
 	: WHILE '(' expression ')' statement
 	| FOR '(' expression ';' expression ';' expression ')' statement
-	| DO statement WHILE '(' expression ')' ';'
+	| DO '{' statement '}' WHILE '(' expression ')' ';'
 	;
 
 jump_statement
