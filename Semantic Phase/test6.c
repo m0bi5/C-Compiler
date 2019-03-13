@@ -2,10 +2,11 @@
 
 int main() 
 {
+    int a,b;
      if(a==b){
         switch(b){
             case 1:
-            printf("Hello\n")
+            b=b+1;
         }  
      }
 }
