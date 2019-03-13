@@ -26,6 +26,7 @@
 	#define SYMBOL_TABLE symbol_table_list[current_scope].symbol_table
 	entry_t** constant_table;
 	entry_t* stack[11];
+	entry_t* search_entry=NULL;
 	int stack_pointer=0;
 	int function_call=0;
 	char identifier_name[100];
@@ -38,13 +39,18 @@
 	int parameter_types[10]={0};
 	int parameter_count=0;
 	int argument_types[10]={0};
+	int operand_types[10]={0};
+	int operand_count=0;
 	int argument_count=0;
 	int func_type;
+	int empty_subs=0;
 	int param_list[10];
 	int p_idx = 0;
 	int p=0;
 	int rhs = 0;
-	void type_check(int,int,int);
+	int rhs_array=0;
+	int lhs_array=0;
+	void type_check(int[],int);
 %}
 
 %%
@@ -66,24 +72,28 @@ function_definition
 
 fundamental_exp
 	: IDENTIFIER		{
-						
-							if(search_recursive($1)==NULL)
-								yyerror("Function not declared");
+							search_entry=search_recursive($1);
+							if(search_entry==NULL)
+								yyerror("Identifier not declared");
+							else{
+								operand_types[operand_count++]=search_entry->data_type;
+							}
+							
 
 						}
-	| STRING_CONSTANT	{ insert(constant_table, $1,INT_MAX, STRING_CONSTANT); }
-	| HEX_CONSTANT		{ insert(constant_table, $1,INT_MAX, HEX_CONSTANT); }
-	| CHAR_CONSTANT     { insert(constant_table, $1,INT_MAX, CHAR_CONSTANT); }
-	| FLOAT_CONSTANT	{ insert(constant_table, $1,INT_MAX, FLOAT); }
-	| INT_CONSTANT		{ insert(constant_table, $1,INT_MAX, INT); }
+	| STRING_CONSTANT	{ insert(constant_table, $1,INT_MAX, STRING_CONSTANT); operand_types[operand_count++]=STRING_CONSTANT;}
+	| HEX_CONSTANT		{ insert(constant_table, $1,INT_MAX, HEX_CONSTANT); operand_types[operand_count++]=HEX_CONSTANT;}
+	| CHAR_CONSTANT     { insert(constant_table, $1,INT_MAX, CHAR_CONSTANT); operand_types[operand_count++]=CHAR;}
+	| FLOAT_CONSTANT	{ insert(constant_table, $1,INT_MAX, FLOAT); operand_types[operand_count++]=FLOAT;}
+	| INT_CONSTANT		{ insert(constant_table, $1,INT_MAX, INT); operand_types[operand_count++]=INT;}
 	| '(' expression ')'
 	;
 
 secondary_exp
 	: fundamental_exp
-	| secondary_exp '[' expression ']'
-	| secondary_exp '(' ')'				{}			
-	| secondary_exp '(' arg_list ')'	{check_parameter_list($1,argument_types,argument_count);}
+	| secondary_exp '[' expression ']'	{check_array(identifier_name);}
+	| secondary_exp '(' ')'				{check_parameter_list($1,argument_types,argument_count);argument_count=0;}	
+	| secondary_exp '(' arg_list ')'	{check_parameter_list($1,argument_types,argument_count);argument_count=0;}
 	| secondary_exp INC_OP
 	| secondary_exp DEC_OP
 	;
@@ -169,13 +179,13 @@ conditional_expression
 	;
 
 assignment_expression
-	: conditional_expression
+	: conditional_expression						{type_check(operand_types,operand_count);operand_count=0;}
 	| unary_expression '=' assignment_expression
 	;
 
 expression
-	: assignment_expression
-	| expression ',' assignment_expression
+	: assignment_expression						
+	| expression ',' assignment_expression		{type_check(operand_types,operand_count);operand_count=0;}
 	;
 
 constant_expression
@@ -198,8 +208,17 @@ init_declarator_list
 	;
 
 init_declarator
-	: declarator
-	| declarator '=' init
+	: declarator					{if(empty_subs){yyerror("Initializer not used for array with undeclared size");}lhs_array=0;rhs_array=0;}
+	| declarator '=' init			{
+										if(empty_subs && lhs_array && rhs_array==0){
+											yyerror("Initializer not used for array with undeclared size");
+										}
+										if(rhs_array && lhs_array==0){
+											yyerror("Cannot store pointer in non pointer variable");
+										}
+										rhs_array=0;
+										lhs_array=0;
+									}
 	;
 
 type_specifier
@@ -246,8 +265,12 @@ declarator
 													else{
 														search(SYMBOL_TABLE,identifier_name)->array_dimension=1;
 													}
+													lhs_array=1;
 												}
-	| declarator '[' ']'
+	| declarator '[' ']'						{
+													lhs_array=1;
+													empty_subs=1;
+												}
 	| declarator '(' 							{is_function=1;func_type=current_dtype;}
 		parameter_type_list 
 		')'										{stack_pointer=0;parameter_count=0;}							
@@ -272,8 +295,10 @@ parameter_declaration
 	: declaration_specifiers declarator				{
 														if($1!=VOID){
 															parameter_types[parameter_count++]=$1;
-															stack[0]->num_params=parameter_count;
-															stack[0]->parameter_list=parameter_types;
+															if(stack[0]){
+																stack[0]->num_params=parameter_count;
+																stack[0]->parameter_list=parameter_types;	
+															}
 														}
 														else
 															yyerror("Parameter of type VOID not allowed");
@@ -281,8 +306,10 @@ parameter_declaration
 	| declaration_specifiers abstract_declarator	{
 														if($1!=VOID){
 															parameter_types[parameter_count++]=$1;	
-															stack[0]->num_params=parameter_count;
-															stack[0]->parameter_list=parameter_types;
+															if(stack[0]){
+																stack[0]->num_params=parameter_count;
+																stack[0]->parameter_list=parameter_types;	
+															}
 														}
 														else
 															yyerror("Parameter of type VOID not allowed");
@@ -317,9 +344,9 @@ direct_abstract_declarator
 	;
 
 init
-	: assignment_expression
-	| '{' init_list '}'
-	| '{' init_list ',' '}'
+	: assignment_expression		{}
+	| '{' init_list '}'			{rhs_array=1;}
+	| '{' init_list ',' '}'		{rhs_array=1;}
 	;
 
 init_list
@@ -398,15 +425,14 @@ jump_statement
 	;
 %%
 
-void type_check(int left, int right, int flag)
+void type_check(int arr[], int n)
 {
-	if(left != right)
-	{
-		switch(flag)
-		{
-			case 0: yyerror("Type mismatch in arithmetic expression"); break;
-			case 1: yyerror("Type mismatch in assignment expression"); break;
-			case 2: yyerror("Type mismatch in logical expression"); break;
+	for(int i=0;i<n;i+=1){
+		if(arr[i]==STRING_CONSTANT){
+			yyerror("Invalid use of string");
+		}
+		if(arr[i]==CHAR){
+			yyerror("Warning : Invalid use of character");
 		}
 	}
 }

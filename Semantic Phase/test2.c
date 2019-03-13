@@ -1,14 +1,27 @@
-#include<stdio.h>
+/*
+Semantic errors for Function declarations
+* Duplicate declaration of ID
+* Params of type void
+* No functions defined
+* Int function has void return
+* Void function has int return
+*/
 
+#include<stdio.h>
+int sum(){
+    return 1;
+}
+int sum(){
+    return 2;
+}
+int voider(void t){
+    return ;
+}
+void inter(int a){
+    return a;
+}
 int main() 
 {
-    int a=4 ;
-    for(a=4;a<10;a=a+1){
-        while(b==5){
-            a=1;
-        }
-    }
-    do{
-        printf("Hello");
-    }while(a++);
+    minter();
+    return 0;
 }

@@ -64,6 +64,7 @@
 	#define SYMBOL_TABLE symbol_table_list[current_scope].symbol_table
 	entry_t** constant_table;
 	entry_t* stack[11];
+	entry_t* search_entry=NULL;
 	int stack_pointer=0;
 	int function_call=0;
 	char identifier_name[100];
@@ -76,17 +77,22 @@
 	int parameter_types[10]={0};
 	int parameter_count=0;
 	int argument_types[10]={0};
+	int operand_types[10]={0};
+	int operand_count=0;
 	int argument_count=0;
 	int func_type;
+	int empty_subs=0;
 	int param_list[10];
 	int p_idx = 0;
 	int p=0;
 	int rhs = 0;
-	void type_check(int,int,int);
+	int rhs_array=0;
+	int lhs_array=0;
+	void type_check(int[],int);
 
 
 /* Line 172 of glr.c  */
-#line 90 "parser.tab.c"
+#line 96 "parser.tab.c"
 
 
 
@@ -198,7 +204,7 @@ static YYSTYPE yyval_default;
 
 
 /* Line 243 of glr.c  */
-#line 202 "parser.tab.c"
+#line 208 "parser.tab.c"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -436,23 +442,23 @@ static const signed char yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const unsigned short int yyrline[] =
 {
-       0,    53,    53,    54,    58,    59,    63,    64,    68,    74,
-      75,    76,    77,    78,    79,    83,    84,    85,    86,    87,
-      88,    92,    93,    97,    98,    99,   100,   104,   105,   106,
-     110,   111,   115,   116,   117,   118,   122,   123,   124,   128,
-     129,   130,   131,   132,   136,   137,   138,   142,   143,   147,
-     148,   152,   153,   157,   158,   162,   163,   167,   168,   172,
-     173,   177,   178,   182,   186,   187,   191,   192,   196,   197,
-     201,   202,   206,   207,   208,   209,   210,   211,   212,   213,
-     214,   215,   216,   217,   218,   219,   220,   221,   225,   226,
-     230,   240,   241,   250,   251,   251,   254,   254,   257,   257,
-     263,   267,   268,   272,   281,   290,   294,   295,   299,   300,
-     304,   308,   309,   310,   311,   312,   313,   314,   315,   316,
-     320,   321,   322,   326,   327,   331,   332,   333,   334,   335,
-     336,   340,   340,   346,   347,   348,   349,   350,   351,   355,
-     356,   360,   361,   365,   366,   370,   371,   375,   376,   377,
-     381,   382,   383,   387,   388,   389,   393,   394,   395,   396,
-     397
+       0,    59,    59,    60,    64,    65,    69,    70,    74,    84,
+      85,    86,    87,    88,    89,    93,    94,    95,    96,    97,
+      98,   102,   103,   107,   108,   109,   110,   114,   115,   116,
+     120,   121,   125,   126,   127,   128,   132,   133,   134,   138,
+     139,   140,   141,   142,   146,   147,   148,   152,   153,   157,
+     158,   162,   163,   167,   168,   172,   173,   177,   178,   182,
+     183,   187,   188,   192,   196,   197,   201,   202,   206,   207,
+     211,   212,   225,   226,   227,   228,   229,   230,   231,   232,
+     233,   234,   235,   236,   237,   238,   239,   240,   244,   245,
+     249,   259,   260,   270,   274,   274,   277,   277,   280,   280,
+     286,   290,   291,   295,   306,   317,   321,   322,   326,   327,
+     331,   335,   336,   337,   338,   339,   340,   341,   342,   343,
+     347,   348,   349,   353,   354,   358,   359,   360,   361,   362,
+     363,   367,   367,   373,   374,   375,   376,   377,   378,   382,
+     383,   387,   388,   392,   393,   397,   398,   402,   403,   404,
+     408,   409,   410,   414,   415,   416,   420,   421,   422,   423,
+     424
 };
 #endif
 
@@ -1456,11 +1462,15 @@ yyuserAction (yyRuleNum yyn, int yyrhslen, yyGLRStackItem* yyvsp,
         case 8:
 
 /* Line 936 of glr.c  */
-#line 68 "parser.y"
+#line 74 "parser.y"
     {
-						
-							if(search_recursive((((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (1))].yystate.yysemantics.yysval))==NULL)
-								yyerror("Function not declared");
+							search_entry=search_recursive((((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (1))].yystate.yysemantics.yysval));
+							if(search_entry==NULL)
+								yyerror("Identifier not declared");
+							else{
+								operand_types[operand_count++]=search_entry->data_type;
+							}
+							
 
 						;}
     break;
@@ -1468,203 +1478,247 @@ yyuserAction (yyRuleNum yyn, int yyrhslen, yyGLRStackItem* yyvsp,
   case 9:
 
 /* Line 936 of glr.c  */
-#line 74 "parser.y"
-    { insert(constant_table, (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (1))].yystate.yysemantics.yysval),INT_MAX, STRING_CONSTANT); ;}
+#line 84 "parser.y"
+    { insert(constant_table, (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (1))].yystate.yysemantics.yysval),INT_MAX, STRING_CONSTANT); operand_types[operand_count++]=STRING_CONSTANT;;}
     break;
 
   case 10:
 
 /* Line 936 of glr.c  */
-#line 75 "parser.y"
-    { insert(constant_table, (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (1))].yystate.yysemantics.yysval),INT_MAX, HEX_CONSTANT); ;}
+#line 85 "parser.y"
+    { insert(constant_table, (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (1))].yystate.yysemantics.yysval),INT_MAX, HEX_CONSTANT); operand_types[operand_count++]=HEX_CONSTANT;;}
     break;
 
   case 11:
 
 /* Line 936 of glr.c  */
-#line 76 "parser.y"
-    { insert(constant_table, (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (1))].yystate.yysemantics.yysval),INT_MAX, CHAR_CONSTANT); ;}
+#line 86 "parser.y"
+    { insert(constant_table, (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (1))].yystate.yysemantics.yysval),INT_MAX, CHAR_CONSTANT); operand_types[operand_count++]=CHAR;;}
     break;
 
   case 12:
 
 /* Line 936 of glr.c  */
-#line 77 "parser.y"
-    { insert(constant_table, (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (1))].yystate.yysemantics.yysval),INT_MAX, FLOAT); ;}
+#line 87 "parser.y"
+    { insert(constant_table, (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (1))].yystate.yysemantics.yysval),INT_MAX, FLOAT); operand_types[operand_count++]=FLOAT;;}
     break;
 
   case 13:
 
 /* Line 936 of glr.c  */
-#line 78 "parser.y"
-    { insert(constant_table, (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (1))].yystate.yysemantics.yysval),INT_MAX, INT); ;}
+#line 88 "parser.y"
+    { insert(constant_table, (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (1))].yystate.yysemantics.yysval),INT_MAX, INT); operand_types[operand_count++]=INT;;}
+    break;
+
+  case 16:
+
+/* Line 936 of glr.c  */
+#line 94 "parser.y"
+    {check_array(identifier_name);;}
     break;
 
   case 17:
 
 /* Line 936 of glr.c  */
-#line 85 "parser.y"
-    {;}
+#line 95 "parser.y"
+    {check_parameter_list((((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (3))].yystate.yysemantics.yysval),argument_types,argument_count);argument_count=0;;}
     break;
 
   case 18:
 
 /* Line 936 of glr.c  */
-#line 86 "parser.y"
-    {check_parameter_list((((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (4))].yystate.yysemantics.yysval),argument_types,argument_count);;}
+#line 96 "parser.y"
+    {check_parameter_list((((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (4))].yystate.yysemantics.yysval),argument_types,argument_count);argument_count=0;;}
     break;
 
   case 21:
 
 /* Line 936 of glr.c  */
-#line 92 "parser.y"
+#line 102 "parser.y"
     {argument_types[argument_count++]=search(SYMBOL_TABLE,identifier_name)->data_type;;}
     break;
 
   case 22:
 
 /* Line 936 of glr.c  */
-#line 93 "parser.y"
+#line 103 "parser.y"
     {argument_types[argument_count++]=search(SYMBOL_TABLE,identifier_name)->data_type;;}
+    break;
+
+  case 59:
+
+/* Line 936 of glr.c  */
+#line 182 "parser.y"
+    {type_check(operand_types,operand_count);operand_count=0;;}
+    break;
+
+  case 62:
+
+/* Line 936 of glr.c  */
+#line 188 "parser.y"
+    {type_check(operand_types,operand_count);operand_count=0;;}
     break;
 
   case 64:
 
 /* Line 936 of glr.c  */
-#line 186 "parser.y"
+#line 196 "parser.y"
     {	;}
     break;
 
   case 66:
 
 /* Line 936 of glr.c  */
-#line 191 "parser.y"
+#line 201 "parser.y"
     {;}
     break;
 
   case 67:
 
 /* Line 936 of glr.c  */
-#line 192 "parser.y"
+#line 202 "parser.y"
     {;}
+    break;
+
+  case 70:
+
+/* Line 936 of glr.c  */
+#line 211 "parser.y"
+    {if(empty_subs){yyerror("Initializer not used for array with undeclared size");}lhs_array=0;rhs_array=0;;}
+    break;
+
+  case 71:
+
+/* Line 936 of glr.c  */
+#line 212 "parser.y"
+    {
+										if(empty_subs && lhs_array && rhs_array==0){
+											yyerror("Initializer not used for array with undeclared size");
+										}
+										if(rhs_array && lhs_array==0){
+											yyerror("Cannot store pointer in non pointer variable");
+										}
+										rhs_array=0;
+										lhs_array=0;
+									;}
     break;
 
   case 72:
 
 /* Line 936 of glr.c  */
-#line 206 "parser.y"
+#line 225 "parser.y"
     { ((*yyvalp)) = VOID; current_dtype=VOID;;}
     break;
 
   case 73:
 
 /* Line 936 of glr.c  */
-#line 207 "parser.y"
+#line 226 "parser.y"
     { ((*yyvalp)) = AUTO; ;}
     break;
 
   case 74:
 
 /* Line 936 of glr.c  */
-#line 208 "parser.y"
+#line 227 "parser.y"
     { ((*yyvalp)) = TYPEDEF; ;}
     break;
 
   case 75:
 
 /* Line 936 of glr.c  */
-#line 209 "parser.y"
+#line 228 "parser.y"
     { ((*yyvalp)) = EXTERN; ;}
     break;
 
   case 76:
 
 /* Line 936 of glr.c  */
-#line 210 "parser.y"
+#line 229 "parser.y"
     { ((*yyvalp)) = REGISTER; ;}
     break;
 
   case 77:
 
 /* Line 936 of glr.c  */
-#line 211 "parser.y"
+#line 230 "parser.y"
     { ((*yyvalp)) = STATIC; ;}
     break;
 
   case 78:
 
 /* Line 936 of glr.c  */
-#line 212 "parser.y"
+#line 231 "parser.y"
     { ((*yyvalp)) = CHAR; current_dtype=CHAR;;}
     break;
 
   case 79:
 
 /* Line 936 of glr.c  */
-#line 213 "parser.y"
+#line 232 "parser.y"
     { ((*yyvalp)) = SHORT;;}
     break;
 
   case 80:
 
 /* Line 936 of glr.c  */
-#line 214 "parser.y"
+#line 233 "parser.y"
     { ((*yyvalp)) = CONST; ;}
     break;
 
   case 81:
 
 /* Line 936 of glr.c  */
-#line 215 "parser.y"
+#line 234 "parser.y"
     { ((*yyvalp)) = FLOAT;current_dtype=FLOAT;;}
     break;
 
   case 82:
 
 /* Line 936 of glr.c  */
-#line 216 "parser.y"
+#line 235 "parser.y"
     { ((*yyvalp)) = DOUBLE;current_dtype=DOUBLE;;}
     break;
 
   case 83:
 
 /* Line 936 of glr.c  */
-#line 217 "parser.y"
+#line 236 "parser.y"
     { ((*yyvalp)) = INT;current_dtype=INT;;}
     break;
 
   case 84:
 
 /* Line 936 of glr.c  */
-#line 218 "parser.y"
+#line 237 "parser.y"
     { ((*yyvalp)) = INLINE; ;}
     break;
 
   case 85:
 
 /* Line 936 of glr.c  */
-#line 219 "parser.y"
+#line 238 "parser.y"
     { ((*yyvalp)) = LONG; ;}
     break;
 
   case 86:
 
 /* Line 936 of glr.c  */
-#line 220 "parser.y"
+#line 239 "parser.y"
     { ((*yyvalp)) = SIGNED; ;}
     break;
 
   case 87:
 
 /* Line 936 of glr.c  */
-#line 221 "parser.y"
+#line 240 "parser.y"
     { ((*yyvalp)) = UNSIGNED; ;}
     break;
 
   case 90:
 
 /* Line 936 of glr.c  */
-#line 230 "parser.y"
+#line 249 "parser.y"
     {	
 							stack[stack_pointer]=insert(SYMBOL_TABLE,(((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (1))].yystate.yysemantics.yysval),INT_MAX,current_dtype);
 							if(stack[stack_pointer]==NULL){
@@ -1680,7 +1734,7 @@ yyuserAction (yyRuleNum yyn, int yyrhslen, yyGLRStackItem* yyvsp,
   case 92:
 
 /* Line 936 of glr.c  */
-#line 241 "parser.y"
+#line 260 "parser.y"
     {
 													temp=inter((((yyGLRStackItem const *)yyvsp)[YYFILL ((3) - (4))].yystate.yysemantics.yysval));
 													if(temp<1){
@@ -1689,60 +1743,73 @@ yyuserAction (yyRuleNum yyn, int yyrhslen, yyGLRStackItem* yyvsp,
 													else{
 														search(SYMBOL_TABLE,identifier_name)->array_dimension=1;
 													}
+													lhs_array=1;
+												;}
+    break;
+
+  case 93:
+
+/* Line 936 of glr.c  */
+#line 270 "parser.y"
+    {
+													lhs_array=1;
+													empty_subs=1;
 												;}
     break;
 
   case 94:
 
 /* Line 936 of glr.c  */
-#line 251 "parser.y"
+#line 274 "parser.y"
     {is_function=1;func_type=current_dtype;;}
     break;
 
   case 95:
 
 /* Line 936 of glr.c  */
-#line 253 "parser.y"
+#line 276 "parser.y"
     {stack_pointer=0;parameter_count=0;;}
     break;
 
   case 96:
 
 /* Line 936 of glr.c  */
-#line 254 "parser.y"
+#line 277 "parser.y"
     {is_function=1;func_type=current_dtype;;}
     break;
 
   case 97:
 
 /* Line 936 of glr.c  */
-#line 256 "parser.y"
+#line 279 "parser.y"
     {stack_pointer=0;parameter_count=0;;}
     break;
 
   case 98:
 
 /* Line 936 of glr.c  */
-#line 257 "parser.y"
+#line 280 "parser.y"
     {is_function=1;func_type=current_dtype;;}
     break;
 
   case 99:
 
 /* Line 936 of glr.c  */
-#line 258 "parser.y"
+#line 281 "parser.y"
     {stack_pointer=0;parameter_count=0;;}
     break;
 
   case 103:
 
 /* Line 936 of glr.c  */
-#line 272 "parser.y"
+#line 295 "parser.y"
     {
 														if((((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (2))].yystate.yysemantics.yysval)!=VOID){
 															parameter_types[parameter_count++]=(((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (2))].yystate.yysemantics.yysval);
-															stack[0]->num_params=parameter_count;
-															stack[0]->parameter_list=parameter_types;
+															if(stack[0]){
+																stack[0]->num_params=parameter_count;
+																stack[0]->parameter_list=parameter_types;	
+															}
 														}
 														else
 															yyerror("Parameter of type VOID not allowed");
@@ -1752,12 +1819,14 @@ yyuserAction (yyRuleNum yyn, int yyrhslen, yyGLRStackItem* yyvsp,
   case 104:
 
 /* Line 936 of glr.c  */
-#line 281 "parser.y"
+#line 306 "parser.y"
     {
 														if((((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (2))].yystate.yysemantics.yysval)!=VOID){
 															parameter_types[parameter_count++]=(((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (2))].yystate.yysemantics.yysval);	
-															stack[0]->num_params=parameter_count;
-															stack[0]->parameter_list=parameter_types;
+															if(stack[0]){
+																stack[0]->num_params=parameter_count;
+																stack[0]->parameter_list=parameter_types;	
+															}
 														}
 														else
 															yyerror("Parameter of type VOID not allowed");
@@ -1767,56 +1836,77 @@ yyuserAction (yyRuleNum yyn, int yyrhslen, yyGLRStackItem* yyvsp,
   case 105:
 
 /* Line 936 of glr.c  */
-#line 290 "parser.y"
+#line 317 "parser.y"
     {parameter_types[parameter_count++]=(((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (1))].yystate.yysemantics.yysval);;}
+    break;
+
+  case 120:
+
+/* Line 936 of glr.c  */
+#line 347 "parser.y"
+    {;}
+    break;
+
+  case 121:
+
+/* Line 936 of glr.c  */
+#line 348 "parser.y"
+    {rhs_array=1;;}
+    break;
+
+  case 122:
+
+/* Line 936 of glr.c  */
+#line 349 "parser.y"
+    {rhs_array=1;;}
     break;
 
   case 131:
 
 /* Line 936 of glr.c  */
-#line 340 "parser.y"
+#line 367 "parser.y"
     {current_scope=create_new_scope();;}
     break;
 
   case 132:
 
 /* Line 936 of glr.c  */
-#line 342 "parser.y"
+#line 369 "parser.y"
     {current_scope=exit_scope();;}
     break;
 
   case 156:
 
 /* Line 936 of glr.c  */
-#line 393 "parser.y"
+#line 420 "parser.y"
     {;}
     break;
 
   case 157:
 
 /* Line 936 of glr.c  */
-#line 394 "parser.y"
+#line 421 "parser.y"
     {;}
     break;
 
   case 158:
 
 /* Line 936 of glr.c  */
-#line 395 "parser.y"
+#line 422 "parser.y"
     {if(func_type!=VOID)yyerror("Function cannot return NULL");;}
     break;
 
   case 159:
 
 /* Line 936 of glr.c  */
-#line 396 "parser.y"
+#line 423 "parser.y"
     {if(func_type==VOID)yyerror("VOID function cannot return INT");;}
     break;
 
 
 
 /* Line 936 of glr.c  */
-#line 1820 "parser.tab.c"
+#line 1910 "parser.tab.c"
       default: break;
     }
 
@@ -3503,18 +3593,17 @@ yypdumpstack (yyGLRStack* yystackp)
 
 
 /* Line 2634 of glr.c  */
-#line 399 "parser.y"
+#line 426 "parser.y"
 
 
-void type_check(int left, int right, int flag)
+void type_check(int arr[], int n)
 {
-	if(left != right)
-	{
-		switch(flag)
-		{
-			case 0: yyerror("Type mismatch in arithmetic expression"); break;
-			case 1: yyerror("Type mismatch in assignment expression"); break;
-			case 2: yyerror("Type mismatch in logical expression"); break;
+	for(int i=0;i<n;i+=1){
+		if(arr[i]==STRING_CONSTANT){
+			yyerror("Invalid use of string");
+		}
+		if(arr[i]==CHAR){
+			yyerror("Warning : Invalid use of character");
 		}
 	}
 }

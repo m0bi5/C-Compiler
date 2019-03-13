@@ -110,7 +110,7 @@ entry_t *create_entry( char *lexeme, int value, int data_type )
 	new_entry->parameter_list = NULL;
 	new_entry->array_dimension = -1;
 	new_entry->is_constant = 0;
-	new_entry->num_params = 0;
+	new_entry->num_params = -1;
 	new_entry->data_type = data_type;
 
 	return new_entry;
@@ -119,7 +119,6 @@ entry_t *create_entry( char *lexeme, int value, int data_type )
 /* Search for an entry given a lexeme. Return a pointer to the entry of the lexeme exists, else return NULL */
 entry_t* search(entry_t** hash_table_ptr, char* lexeme)
 {
-	
 	uint32_t idx = 0;
 	entry_t* myentry;
 
@@ -214,14 +213,20 @@ int check_parameter_list(char* t, int* list, int m)
 		c+=1;
 	}
 	entry_t *entry=search_recursive(t);
-
+	if(entry->num_params==-1){
+		yyerror("Identifier is not a function");
+		return;
+	}
 	if(m != entry->num_params)
 	{
 		yyerror("Number of parameters and arguments do not match");
 	}
 
 	int i;
-	for(i=0; i<m; i++)
+	int min=m;
+	if(m>entry->num_params)
+		min=entry->num_params;
+	for(i=0; i<min; i++)
 	{
 		if(list[i] != entry->parameter_list[i]){
 			yyerror("Parameter and argument types do not match");
@@ -299,10 +304,36 @@ void print_arr(int a[],int n){
 	}
 }
 int inter(char a[]){
-	//printf("INTER CALL : %d",(int)a[0]);
-	return ((int)a[0])-48;
+	char b[100]="";
+	int c=0,t=0;
+	int cpy=0;
+	while(a[c+1]){
+		if(a[c-1]=='[')
+			cpy=1;
+		if(a[c]==']')
+			cpy=0;
+		if(cpy){
+			b[t++]=a[c];
+		}
+		c+=1;
+	}
+	b[t]='\0';
+	if(b){
+		if(b[0]=='-')
+			return -(((int)b[1])-48);
+		return ((int)b[0])-48;
+	}
+	else{
+		yyerror("Array variable has no subsript");
+	}
 }
-
+void check_array(char* a){
+	if(search_recursive(a)){
+		if(search_recursive(a)->array_dimension==-1 || search_recursive(a)->num_params>=0){
+			yyerror("Cannot subscript an identifier which is not an array");
+		}
+	}
+}
 void display_constant_table(entry_t** hash_table_ptr)
 {
 	int i;

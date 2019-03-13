@@ -30,7 +30,7 @@ int yylineno,beginning;
 "#define"({whitespace})""({letter}({letter}|{digit})*)""({whitespace})""({letter}({letter}|{digit})*)"" {}
 
 \"[^\n]*\" 									{ yylval = yytext; return STRING_CONSTANT; }
-\'{letter}\' 								{ yylval = yytext; return CHAR_CONSTANT; }
+\'({letter}|{digit})\' 						{ yylval = yytext; return CHAR_CONSTANT; }
 {digit}+    								{ yylval = yytext; return INT_CONSTANT; strcpy(latest_int,yytext);}
 ({digit}+)\.({digit}+) 						{ yylval = yytext; return FLOAT_CONSTANT; }
 ({digit}+)\.({digit}+)([eE][-+]?[0-9]+)? 	{ yylval = yytext; return FLOAT_CONSTANT; }
